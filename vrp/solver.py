@@ -7,16 +7,24 @@ import math
 from collections import namedtuple
 import numpy as np
 import pandas as pd
-import sklearn
-from sklearn.cluster import KMeans
-import pylab
 import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
 
+
+NUM_VEHICLES = 25
+
+# Defines the data models.
 Warehouse = namedtuple("Warehouse", ['index', 'x', 'y'])
 Customer = namedtuple("Customer", ['index', 'demand', 'x', 'y'])
+Vehicle = namedtuple("Vehicle", ['index', 'capacity', 'cost', 'x', 'y', 'customers', 'attributes'])
 
 
 def read_csv_input_data(input_file_csv):
+    """
+    Reads csv input data file.
+    :param input_file_csv:
+    :return:
+    """
     # Load the data
     locations_df = pd.read_csv(input_file_csv, delimiter=',', header=None, names=['latitude', 'longitude', 'customer'])
     # print(locations_df)
@@ -39,6 +47,16 @@ def read_csv_input_data(input_file_csv):
     return warehouses, customers
 
 
+def distance(customer1, customer2):
+    """
+    Calculates the Euclidean distance between two location coordinates.
+    :param customer1:
+    :param customer2:
+    :return:
+    """
+    return math.sqrt((customer1.x - customer2.x) ** 2 + (customer1.y - customer2.y) ** 2)
+
+
 def plot_input_data(warehouses, customers):
     """
     Plots the input data.
@@ -46,8 +64,7 @@ def plot_input_data(warehouses, customers):
     :param customers:
     :return:
     """
-
-    coords_warehouses = np.array([[c.x, c.y] for c in depots])
+    coords_warehouses = np.array([[c.x, c.y] for c in warehouses])
     coords_customers = np.array([[c.x, c.y] for c in customers])
 
     plt.scatter(coords_customers[:, 0], coords_customers[:, 1], s=60, c='b', label='customer')
@@ -58,33 +75,199 @@ def plot_input_data(warehouses, customers):
     plt.show()
 
 
+def plot_clusters(warehouses, customers, centroids, clusters, cluster_indexes_to_show):
+    """
+    Plots the clusters.
+    :param warehouses:
+    :param customers:
+    :param centroids:
+    :param clusters:
+    :param cluster_indexes_to_show:
+    :return:
+    """
+    coords_warehouses = np.array([[c.x, c.y] for c in warehouses])
+    coords_customers = np.array([[c.x, c.y] for c in customers])
+
+    cluster_labels = np.unique(clusters)
+    n_clusters = cluster_labels.shape[0]
+
+    cmap = plt.cm.get_cmap('Dark2')
+    for i in range(len(cluster_labels)):
+        if (i in cluster_indexes_to_show) or (cluster_indexes_to_show == []):
+            color = cmap(1.0 * cluster_labels[i] / n_clusters)
+            label_name = 'cluster' + str(i+1)
+            # Plots the customers by each cluster.
+            plt.scatter(coords_customers[clusters == i, 0], coords_customers[clusters == i, 1], s=60, c=color,
+                        label=label_name)
+            # Plots the centroid of each cluster.
+            plt.scatter(centroids[i, 0], centroids[i, 1], s=240, c='b', marker='x', linewidths=1)
+
+    # Plots the warehouse.
+    plt.scatter(coords_warehouses[:, 0], coords_warehouses[:, 1], s=120, c='r', marker='s', label='warehouse')
+
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+    return
+
+
+def plot_assigned_customers(warehouses, vehicles, vehicle_indexes_to_show):
+    """
+    Plots the assigned customers per vehicle.
+    :param warehouses:
+    :param vehicles:
+    :param vehicle_indexes_to_show:
+    :return:
+    """
+    coords_warehouses = np.array([[c.x, c.y] for c in warehouses])
+
+    cmap = plt.cm.get_cmap('Dark2')
+    for i in range(0, len(vehicles)):
+        vehicle = vehicles[i]
+        if (i in vehicle_indexes_to_show) or (vehicle_indexes_to_show == []):
+            color = cmap(1.0 * (i + 1) / len(vehicles))
+            label_name = 'vehicle' + str(i+1)
+            # Plots the allocated customers by each vehicle.
+            coords_customers = np.array([[c.x, c.y] for c in vehicle.customers])
+            print('{0}: {1}'.format(label_name, coords_customers))
+            plt.scatter(coords_customers[:, 0], coords_customers[:, 1], s=60, c=color,
+                        label=label_name)
+            # Plots the centroid of each cluster.
+            plt.scatter(vehicle.x, vehicle.y, s=240, c='b', marker='x', linewidths=1)
+
+    # Plots the warehouse.
+    plt.scatter(coords_warehouses[:, 0], coords_warehouses[:, 1], s=120, c='r', marker='s', label='warehouse')
+
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+    return
+
+
+def detect_outliers(customers, percentile):
+    """
+    Detects the outliers.
+    :param customers:
+    :param percentile:
+    :return:
+    """
+    # Find the global one centroid.
+    clusters, centroids = cluster_customers(1, customers)
+    centroid = Customer(0, 0, centroids[0][0], centroids[0][1])
+
+    # Calculate the Euclidean distance between customer and centroid for all the customers.
+    distances = []
+    for customer in customers:
+        dist = distance(centroid, customer)
+        distances.append(dist)
+
+    # Calculate the average distance.
+    avg_distance = np.mean(distances)
+    threshold_distance = np.percentile(distances, percentile)
+    print('average distance from centroid = {0:.5f}'.format(avg_distance))
+    print('threshold distance from centroid = {0:.5f}'.format(threshold_distance))
+
+    # Detect the outliers if the Euclidean distance between customer and centroid is greater than average distance.
+    inliers = []
+    outliers = []
+    for i in range(len(distances)):
+        if distances[i] > threshold_distance:
+            outliers.append(customers[i])
+        else:
+            inliers.append(customers[i])
+
+    print('outliers: {0} of {1} ({2:.2f})'.format(len(outliers), len(customers), len(outliers)/float(len(customers))))
+    return inliers, outliers
+
+
 def cluster_customers(num_clusters, customers):
-    km = KMeans(n_clusters=num_clusters,
-                init='random',
-                n_init=10,
-                max_iter=300,
-                tol=1e-04,
-                random_state=0)
+    kmeans = KMeans(n_clusters=num_clusters,
+                    init='k-means++',   # 'random', 'k-means++'
+                    n_init=10,
+                    max_iter=300,
+                    tol=1e-04,
+                    random_state=0)
 
     coords = np.array([[c.x, c.y] for c in customers])
-    y_km = km.fit_predict(coords)
+    y_km = kmeans.fit_predict(coords)
 
     cluster_labels = np.unique(y_km)
     n_clusters = cluster_labels.shape[0]
+    centroids = kmeans.cluster_centers_
     print('clusters: %s' % cluster_labels)
-    # print km.labels_
+    print('centroid: %s' % centroids)
 
-    return y_km
+    return y_km, centroids
 
 
-def distance(customer1, customer2):
+def init_vehicles(warehouses, centroids, clusters, customers, max_capacity):
     """
-    Calculates the Euclidean distance between two location coordinates.
-    :param customer1:
-    :param customer2:
+    Initializes and sorts the cluster centroids(i.e. vehicles) by the closest order of
+    the distance between the warehouse and centroid.
+    :param warehouses:
+    :param centroids:
+    :param clusters:
+    :param customers:
+    :param max_capacity:
     :return:
     """
-    return math.sqrt((customer1.x - customer2.x) ** 2 + (customer1.y - customer2.y) ** 2)
+
+    # Calculate the Euclidean distance between warehouse and each centroid.
+    ordered_vehicles = []
+    i = 0
+    for centroid in centroids:
+        # Customers in cluster
+        customers_in_cluster = np.array(customers)[clusters == i]
+        dist = distance(warehouses[0], Customer(0, 0, centroid[0], centroid[1]))
+        vehicle = Vehicle(i, max_capacity, 0, centroid[0], centroid[1], customers_in_cluster, dist)
+        ordered_vehicles.append(vehicle)
+        i += 1
+
+    # Sort by distance ascending.
+    ordered_vehicles = sorted(ordered_vehicles, key=lambda x: x.attributes)
+
+    print('ordered vehicles(centroids): %s' % ordered_vehicles)
+
+    return ordered_vehicles
+
+
+def assign_customers_to_vehicles(customers, vehicles):
+    """
+    Assigns the customers to vehicles.
+    One customer will bd allocated only into one vehicle.
+    :param customers:
+    :param vehicles:
+    :return:
+    """
+    vehicles_ = []
+
+    i = 0
+    for vehicle in vehicles:
+        ordered_customers_tuple = []
+        OrderedCustomer = namedtuple("ordered_customer", ['distance', 'data'])
+        for customer in customers:
+            dist = distance(customer, Customer(0, 0, vehicle.x, vehicle.y))
+            ordered_customers_tuple.append(OrderedCustomer(dist, customer))
+
+        # Sort by distance ascending.
+        ordered_customers_tuple = sorted(ordered_customers_tuple, key=lambda x: x.distance)
+        assigned_customers = []
+
+        for j in range(0, vehicle.capacity):
+            if j < len(ordered_customers_tuple):
+                assigned_customers.append(ordered_customers_tuple[j].data)
+                customers.remove(ordered_customers_tuple[j].data)
+
+        vehicle_ = Vehicle(i, len(assigned_customers), 0.0, vehicle.x, vehicle.y, assigned_customers, vehicle.attributes)
+        print('* vehicle[{0}]: {1}'.format(i, len(assigned_customers)))
+        vehicles_.append(vehicle_)
+        i += 1
+
+    # Should be zero.
+    print('remaining customers = %d' % len(customers))
+    return vehicles_
 
 
 def solve_it(input_data):
@@ -155,23 +338,57 @@ def solve_it(input_data):
     return outputData
 
 
+def solve_vrp(warehouses, customers):
+    """
+    Solves the vehicle routing problem.
+    :param warehouses:
+    :param customers:
+    :return:
+    """
+    # 1. EDA for input data.
+    plot_input_data(warehouses, customers)
+    clusters, centroids = cluster_customers(NUM_VEHICLES, customers)
+    plot_clusters(warehouses, customers, centroids, clusters, [])
+    # plot_clusters(warehouses, customers, centroids, clusters, [0, 1, 2, 3, 4])
+    # plot_clusters(warehouses, customers, centroids, clusters, [5, 6, 7, 8, 9])
+    # plot_clusters(warehouses, customers, centroids, clusters, [10, 11, 12, 13, 14])
+    # plot_clusters(warehouses, customers, centroids, clusters, [15, 16, 17, 18, 19])
+    # plot_clusters(warehouses, customers, centroids, clusters, [20, 21, 22, 23, 24])
+
+    # 2. Detect the outliers.
+    # If the distance between global centroid and customer is outside of 85% percentile distance statistice,
+    # set as outlier.
+    inliers, outliers = detect_outliers(customers, 85)
+
+    # 3. Find the centroids for 25 vehicles only with inliers.
+    clusters, centroids = cluster_customers(NUM_VEHICLES, inliers)
+    plot_clusters(warehouses, inliers, centroids, clusters, [])
+
+    # 4. Initialize and sort the cluster centroids by the closest order of the distance
+    # between the warehouse and centroid.
+    # i.e. The sorted cluster centroids are the vehicles to assign the customers.
+    # We assume that each vehicle's max capacity is 22 (i.e. capacity = number of customers / number of vehicles)
+    max_capacity = len(customers) / NUM_VEHICLES
+    print('max capacity = %d' % max_capacity)
+    vehicles = init_vehicles(warehouses, centroids, clusters, inliers, max_capacity)
+
+    # 5. Assign all the customers into each cluster centroid(i.e. vehicle) by the order of the centroids.
+    # Subject to the constraint of vehicle's capacity.
+    vehicles = assign_customers_to_vehicles(customers, vehicles)
+
+    plot_assigned_customers(warehouses, vehicles, [])
+    for i in range(0, NUM_VEHICLES):
+        plot_assigned_customers(warehouses, vehicles, [i])
+
+
 if __name__ == '__main__':
     import sys
-    #
-    # if len(sys.argv) > 1:
-    #     file_location = sys.argv[1].strip()
-    #     with open(file_location, 'r') as input_data_file:
-    #         input_data = input_data_file.read()
-    #     print(solve_it(input_data))
-    # else:
-    #     print('This test requires an input file.  Please select one from the data directory. (i.e. python solver.py ./data/vrp_5_4_1)')
-
     if len(sys.argv) > 1:
         input_file = sys.argv[1].strip()
-        depots, customers = read_csv_input_data(input_file)
-
-        plot_input_data(depots, customers)
-        cluster_customers(25, customers)
+        warehouses, customers = read_csv_input_data(input_file)
+        solve_vrp(warehouses, customers)
+    else:
+        print('This requires an input file. (eg. python solver.py ../data/locations.csv)')
 
 
 
