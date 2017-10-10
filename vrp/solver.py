@@ -251,6 +251,7 @@ def assign_customers_to_vehicles(customers, vehicles, max_capacity):
 
     shortage_capacity = len(customers) - len(vehicles) * max_capacity
     if shortage_capacity > 0:
+        # Allocate the additional shortage capacity to the first 40% vehicles.
         additional_capacity_vehicle = int(shortage_capacity / (len(vehicles) * 0.4))
         print('shortage capacity: {0}, additional capacity per vehicle: {1}'.format(shortage_capacity,
                                                                                     additional_capacity_vehicle))
