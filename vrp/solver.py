@@ -130,7 +130,8 @@ def plot_assigned_customers(warehouses, vehicles, vehicle_indexes_to_show):
             label_name = 'vehicle' + str(i+1)
             # Plots the allocated customers by each vehicle.
             coords_customers = np.array([[c.x, c.y] for c in vehicle.customers])
-            print('{0}: {1}'.format(label_name, coords_customers))
+            # print('{0}: {1}'.format(label_name, coords_customers))
+            print('{0}'.format(label_name))
             plt.scatter(coords_customers[:, 0], coords_customers[:, 1], s=60, c=color,
                         label=label_name)
             # Plots the centroid of each cluster.
@@ -218,8 +219,12 @@ def init_vehicles(warehouses, centroids, clusters, customers, max_capacity):
     ordered_vehicles = []
     i = 0
     for centroid in centroids:
-        # Customers in cluster
-        customers_in_cluster = np.array(customers)[clusters == i]
+        # Get the customers in a cluster
+        customers_in_cluster = []
+        customers_array_in_cluster = np.array(customers)[clusters == i]
+        for c in customers_array_in_cluster:
+            customers_in_cluster.append(Customer(c[0], c[1], c[2], c[3]))
+
         dist = distance(warehouses[0], Customer(0, 0, centroid[0], centroid[1]))
         vehicle = Vehicle(i, max_capacity, 0, centroid[0], centroid[1], customers_in_cluster, dist)
         ordered_vehicles.append(vehicle)
@@ -228,45 +233,88 @@ def init_vehicles(warehouses, centroids, clusters, customers, max_capacity):
     # Sort by distance ascending.
     ordered_vehicles = sorted(ordered_vehicles, key=lambda x: x.attributes)
 
-    print('ordered vehicles(centroids): %s' % ordered_vehicles)
+    # print('ordered vehicles(centroids): %s' % ordered_vehicles)
 
     return ordered_vehicles
 
 
-def assign_customers_to_vehicles(customers, vehicles):
+def assign_customers_to_vehicles(customers, vehicles, max_capacity):
     """
     Assigns the customers to vehicles.
     One customer will bd allocated only into one vehicle.
     :param customers:
     :param vehicles:
+    :param max_capacity:
     :return:
     """
     vehicles_ = []
+
+    shortage_capacity = len(customers) - len(vehicles) * max_capacity
+    if shortage_capacity > 0:
+        additional_capacity_vehicle = int(shortage_capacity / (len(vehicles) * 0.4))
+        print('shortage capacity: {0}, additional capacity per vehicle: {1}'.format(shortage_capacity,
+                                                                                    additional_capacity_vehicle))
 
     i = 0
     for vehicle in vehicles:
         ordered_customers_tuple = []
         OrderedCustomer = namedtuple("ordered_customer", ['distance', 'data'])
+
+        assigned_customers = []
+
+        customers_in_cluster = vehicle.customers
+        remaining_capacity = vehicle.capacity
+        if shortage_capacity > 0:
+            remaining_capacity += additional_capacity_vehicle
+            shortage_capacity -= additional_capacity_vehicle
+        # Assign customers in cluster first
+        for customer_in_cluster in customers_in_cluster:
+            if remaining_capacity == 0:
+                break
+            for customer in customers:
+                if customer.index == customer_in_cluster.index:
+                    assigned_customers.append(customer_in_cluster)
+                    customers.remove(customer)
+                    remaining_capacity -= 1
+                    print('[assign(A)-vehicle{0}] remaining customers: {1}, remaining capacity: {2}'
+                          .format(int(i+1), len(customers), remaining_capacity))
+                    break
+
+            # This occurs error because of customer_in_cluster object is different from the object in customers.
+            # customers.remove(customer_in_cluster)
+            # That's why removing customer explicitly as below.
+            # customers = [x for x in customers if x.index != customer_in_cluster.index]
+
+        # Calculate the Euclidean distance between customer and centroid of cluster(= centroid of vehicle)
         for customer in customers:
             dist = distance(customer, Customer(0, 0, vehicle.x, vehicle.y))
             ordered_customers_tuple.append(OrderedCustomer(dist, customer))
 
         # Sort by distance ascending.
         ordered_customers_tuple = sorted(ordered_customers_tuple, key=lambda x: x.distance)
-        assigned_customers = []
-
-        for j in range(0, vehicle.capacity):
+        # Assign customers in the remaining by closest distance order
+        for j in range(0, remaining_capacity):
+            customer = ordered_customers_tuple[j].data
             if j < len(ordered_customers_tuple):
-                assigned_customers.append(ordered_customers_tuple[j].data)
-                customers.remove(ordered_customers_tuple[j].data)
+                assigned_customers.append(customer)
+                customers.remove(customer)
+                remaining_capacity -= 1
+                print('[assign(B)-vehicle{0}] remaining customers: {1}, remaining capacity: {2}'
+                      .format(int(i + 1), len(customers), remaining_capacity))
+                if len(customers) == 0:
+                    break
 
         vehicle_ = Vehicle(i, len(assigned_customers), 0.0, vehicle.x, vehicle.y, assigned_customers, vehicle.attributes)
-        print('* vehicle[{0}]: {1}'.format(i, len(assigned_customers)))
+        print('* vehicle[{0}]: assigned {1} customers'.format(int(i+1), len(assigned_customers)))
         vehicles_.append(vehicle_)
         i += 1
+        if len(customers) == 0:
+            break
 
     # Should be zero.
     print('remaining customers = %d' % len(customers))
+    # Check that the number of remaining customers is zero.
+    assert len(customers) == 0
     return vehicles_
 
 
@@ -374,11 +422,12 @@ def solve_vrp(warehouses, customers):
 
     # 5. Assign all the customers into each cluster centroid(i.e. vehicle) by the order of the centroids.
     # Subject to the constraint of vehicle's capacity.
-    vehicles = assign_customers_to_vehicles(customers, vehicles)
+    vehicles = assign_customers_to_vehicles(customers, vehicles, max_capacity)
 
     plot_assigned_customers(warehouses, vehicles, [])
     for i in range(0, NUM_VEHICLES):
-        plot_assigned_customers(warehouses, vehicles, [i])
+        if len(vehicles[i].customers) > 0:
+            plot_assigned_customers(warehouses, vehicles, [i])
 
 
 if __name__ == '__main__':
