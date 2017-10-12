@@ -4,8 +4,11 @@ author: louie
 """
 
 import math
+import itertools
+import time
 from collections import namedtuple
 import numpy as np
+import numpy.linalg as LA
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
@@ -26,12 +29,12 @@ def read_csv_input_data(input_file_csv):
     :return:
     """
     # Load the data
-    locations_df = pd.read_csv(input_file_csv, delimiter=',', header=None, names=['latitude', 'longitude', 'customer'])
+    locations_df = pd.read_csv(input_file_csv, delimiter=',', header=None, names=['latitude', 'longitude', 'is_customer'])
     # print(locations_df)
 
-    depot = locations_df.customer == 0
-    subset_warehouse = locations_df[depot].dropna()
-    subset_customer = locations_df[~depot].dropna()
+    is_warehouse = locations_df.is_customer == 0
+    subset_warehouse = locations_df[is_warehouse].dropna()
+    subset_customer = locations_df[~is_warehouse].dropna()
     print("warehouse: %s" % subset_warehouse)
     print("# of customers: %s" % len(subset_customer))
 
@@ -42,19 +45,33 @@ def read_csv_input_data(input_file_csv):
     for i in range(0, len(subset_customer)):
         x = subset_customer.values[i][0]
         y = subset_customer.values[i][1]
-        customers.append(Customer(int(i), int(1), float(x), float(y)))
+        customers.append(Customer(int(i+1), int(1), float(x), float(y)))
 
     return warehouses, customers
 
 
-def distance(customer1, customer2):
+def distance(point1, point2):
     """
     Calculates the Euclidean distance between two location coordinates.
-    :param customer1:
-    :param customer2:
+    :param point1:
+    :param point2:
     :return:
     """
-    return math.sqrt((customer1.x - customer2.x) ** 2 + (customer1.y - customer2.y) ** 2)
+    return math.sqrt((point1.x - point2.x) ** 2 + (point1.y - point2.y) ** 2)
+
+
+def tour_distance(tour, points):
+    """
+    Calculates the total tour distance between multiple coordinates.
+    :param tour:
+    :param points:
+    :return:
+    """
+    return sum(distance(points[tour[i - 1]], points[tour[i]]) for i in range(len(tour)))
+
+
+def str2bool(v):
+    return v.lower() in ("yes", "true", "t", "1")
 
 
 def plot_input_data(warehouses, customers):
@@ -131,7 +148,7 @@ def plot_assigned_customers(warehouses, vehicles, vehicle_indexes_to_show):
             # Plots the allocated customers by each vehicle.
             coords_customers = np.array([[c.x, c.y] for c in vehicle.customers])
             # print('{0}: {1}'.format(label_name, coords_customers))
-            print('{0}'.format(label_name))
+            print('{0}: {1} customers'.format(label_name, len(vehicle.customers)))
             plt.scatter(coords_customers[:, 0], coords_customers[:, 1], s=60, c=color,
                         label=label_name)
             # Plots the centroid of each cluster.
@@ -140,6 +157,59 @@ def plot_assigned_customers(warehouses, vehicles, vehicle_indexes_to_show):
     # Plots the warehouse.
     plt.scatter(coords_warehouses[:, 0], coords_warehouses[:, 1], s=120, c='r', marker='s', label='warehouse')
 
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+    return
+
+
+def plot_vehicle_tour(vehicle, vehicle_tour):
+    """
+    Plots the vehicle's tour.
+    :param vehicle:
+    :param vehicle_tour:
+    :return:
+    """
+    # Plots the warehouse
+    plt.scatter(vehicle_tour[0].x, vehicle_tour[0].y, s=240, c='r', marker='s', label='warehouse')
+
+    cmap = plt.cm.get_cmap('Dark2')
+    prev_coords = vehicle_tour[0]
+    arrow_head_width = 0.0004
+    arrow_head_length = 0.0006
+    for i in range(1, len(vehicle_tour) - 1):
+        color = cmap(1.0 * (i + 1) / (len(vehicle_tour) - 2))
+        customer = vehicle_tour[i]
+        label_name = 'customer' + str(int(customer.index))
+        # Plot the customer
+        plt.scatter(customer.x, customer.y, s=240, c=color, label=label_name)
+
+        dx = customer.x - prev_coords.x
+        dy = customer.y - prev_coords.y
+
+        if i == 1:
+            xmin, xmax = plt.xlim()
+            ymin, ymax = plt.ylim()
+            xaxis_width = (xmax - xmin) / len(plt.xticks())
+            yaxis_width = (ymax - ymin) / len(plt.yticks())
+            arrow_head_width = yaxis_width / (len(plt.yticks()) * 20)
+            arrow_head_length = xaxis_width / (len(plt.xticks()) * 20)
+            arrow_width = 0.000001
+            print('arrow_head_width:{0}, arrow_head_length:{0}'.format(str(arrow_head_width), str(arrow_head_length)))
+
+        plt.arrow(prev_coords.x, prev_coords.y, dx, dy,
+                  head_width=arrow_head_width, head_length=arrow_head_length, width=arrow_width,
+                  fc='k', ec='k')
+        prev_coords = customer
+
+    dx_home = vehicle_tour[0].x - prev_coords.x
+    dy_home = vehicle_tour[0].y - prev_coords.y
+    plt.arrow(prev_coords.x, prev_coords.y, dx_home, dy_home,
+              head_width=arrow_head_width, head_length=arrow_head_length, width=arrow_width,
+              fc='k', ec='k')
+
+    plt.title('Vehicle ' + str(vehicle.index + 1))
     plt.legend()
     plt.grid()
     plt.show()
@@ -184,6 +254,12 @@ def detect_outliers(customers, percentile):
 
 
 def cluster_customers(num_clusters, customers):
+    """
+    Clusters the customers.
+    :param num_clusters:
+    :param customers:
+    :return:
+    """
     kmeans = KMeans(n_clusters=num_clusters,
                     init='k-means++',   # 'random', 'k-means++'
                     n_init=10,
@@ -205,7 +281,7 @@ def cluster_customers(num_clusters, customers):
 
 def init_vehicles(warehouses, centroids, clusters, customers, max_capacity):
     """
-    Initializes and sorts the cluster centroids(i.e. vehicles) by the closest order of
+    Initializes and sorts the cluster centroids(i.e. vehicles) by the nearest order of
     the distance between the warehouse and centroid.
     :param warehouses:
     :param centroids:
@@ -230,8 +306,10 @@ def init_vehicles(warehouses, centroids, clusters, customers, max_capacity):
         ordered_vehicles.append(vehicle)
         i += 1
 
-    # Sort by distance ascending.
-    ordered_vehicles = sorted(ordered_vehicles, key=lambda x: x.attributes)
+    # Sort by distance ascending(i.e. from the nearest from the warehouse)
+    # ordered_vehicles = sorted(ordered_vehicles, key=lambda x: x.attributes)
+    # Sort by distance descending(i.e. from the farthest from the warehouse)
+    ordered_vehicles = sorted(ordered_vehicles, key=lambda x: x.attributes, reverse=True)
 
     # print('ordered vehicles(centroids): %s' % ordered_vehicles)
 
@@ -241,7 +319,7 @@ def init_vehicles(warehouses, centroids, clusters, customers, max_capacity):
 def assign_customers_to_vehicles(customers, vehicles, max_capacity):
     """
     Assigns the customers to vehicles.
-    One customer will bd allocated only into one vehicle.
+    One customer will be allocated only into one vehicle.
     :param customers:
     :param vehicles:
     :param max_capacity:
@@ -265,10 +343,11 @@ def assign_customers_to_vehicles(customers, vehicles, max_capacity):
 
         customers_in_cluster = vehicle.customers
         remaining_capacity = vehicle.capacity
-        if shortage_capacity > 0:
-            remaining_capacity += additional_capacity_vehicle
-            shortage_capacity -= additional_capacity_vehicle
-        # Assign customers in cluster first
+        # if shortage_capacity > 0:
+        #     remaining_capacity += additional_capacity_vehicle
+        #     shortage_capacity -= additional_capacity_vehicle
+
+        # Assign customers in the cluster first
         for customer_in_cluster in customers_in_cluster:
             if remaining_capacity == 0:
                 break
@@ -281,19 +360,14 @@ def assign_customers_to_vehicles(customers, vehicles, max_capacity):
                           .format(int(i+1), len(customers), remaining_capacity))
                     break
 
-            # This occurs error because of customer_in_cluster object is different from the object in customers.
-            # customers.remove(customer_in_cluster)
-            # That's why removing customer explicitly as below.
-            # customers = [x for x in customers if x.index != customer_in_cluster.index]
-
         # Calculate the Euclidean distance between customer and centroid of cluster(= centroid of vehicle)
         for customer in customers:
-            dist = distance(customer, Customer(0, 0, vehicle.x, vehicle.y))
+            dist = distance(customer, vehicle)
             ordered_customers_tuple.append(OrderedCustomer(dist, customer))
 
-        # Sort by distance ascending.
+        # Sort by distance ascending(i.e. the nearest customers from vehicle)
         ordered_customers_tuple = sorted(ordered_customers_tuple, key=lambda x: x.distance)
-        # Assign customers in the remaining by closest distance order
+        # Assign customers in the remaining by nearest distance order
         for j in range(0, remaining_capacity):
             customer = ordered_customers_tuple[j].data
             if j < len(ordered_customers_tuple):
@@ -312,108 +386,189 @@ def assign_customers_to_vehicles(customers, vehicles, max_capacity):
         if len(customers) == 0:
             break
 
-    # Should be zero.
-    print('remaining customers = %d' % len(customers))
+    # Assign the remaining customers to the nearest centroid(i.e. vehicle) if the vehicle capacity is available.
+    print('number of unassigned customers = %d' % len(customers))
+    if len(customers) > 0:
+        unassigned_customers = []
+        for customer in customers:
+            nearest_vehicle = None
+            min_distance = np.inf
+            for vehicle in vehicles_:
+                dist = distance(customer, vehicle)
+                if dist <= min_distance and len(vehicle.customers) <= vehicle.capacity + additional_capacity_vehicle:
+                    min_distance = dist
+                    nearest_vehicle = vehicle
+                    # print('min distance: %s' % str(min_distance))
+
+            print('nearest vehicle: %s' % str(nearest_vehicle.index + 1))
+            if nearest_vehicle is not None:
+                nearest_vehicle.customers.append(customer)
+                unassigned_customers.append(customer)
+
+        for customer in unassigned_customers:
+            customers.remove(customer)
+
+    # Should be zero
+    print('number of remaining customers = %d' % len(customers))
     # Check that the number of remaining customers is zero.
     assert len(customers) == 0
     return vehicles_
 
 
-def solve_it(input_data):
-    # Modify this code to run your optimization algorithm
+def greedy(points):
+    """
+    Greedy optimization.
+    :param points:
+    :return:
+    """
+    point_count = len(points)
+    coords = np.array([(point.x, point.y) for point in points])
+    tour = [0]
+    candidates = set(range(1, point_count))
+    while candidates:
+        curr_point = tour[-1]
+        nearest_neighbor = None
+        nearest_dist = np.inf
+        for neighbor in candidates:
+            if LA.norm(coords[curr_point] - coords[neighbor]) < nearest_dist:
+                nearest_neighbor = neighbor
+                nearest_dist = LA.norm(coords[curr_point] - coords[neighbor])
 
-    # parse the input
-    lines = input_data.split('\n')
-
-    parts = lines[0].split()
-    customer_count = int(parts[0])
-    vehicle_count = int(parts[1])
-    vehicle_capacity = int(parts[2])
-
-    customers = []
-    for i in range(1, customer_count + 1):
-        line = lines[i]
-        parts = line.split()
-        index = i - 1
-        demand = int(parts[0])
-        x = float(parts[1])
-        y = float(parts[2])
-        customers.append(Customer(index, demand, x, y))
-
-    # the depot is always the first customer in the input
-    depot = customers[0]
-
-    # build a trivial solution
-    # assign customers to vehicles starting by the largest customer demands
-    vehicle_tours = []
-
-    remaining_customers = set(customers)
-    remaining_customers.remove(depot)
-
-    for v in range(0, vehicle_count):
-        # print "Start Vehicle: ",v
-        vehicle_tours.append([])
-        capacity_remaining = vehicle_capacity
-        while sum([capacity_remaining >= customer.demand for customer in remaining_customers]) > 0:
-            used = set()
-            order = sorted(remaining_customers, key=lambda customer: -customer.demand)
-            for customer in order:
-                if capacity_remaining >= customer.demand:
-                    capacity_remaining -= customer.demand
-                    vehicle_tours[v].append(customer)
-                    # print '   add', ci, capacity_remaining
-                    used.add(customer)
-            remaining_customers -= used
-
-    # checks that the number of customers served is correct
-    assert sum([len(v) for v in vehicle_tours]) == len(customers) - 1
-
-    # calculate the cost of the solution; for each vehicle the length of the route
-    cost = 0
-    for v in range(0, vehicle_count):
-        vehicle_tour = vehicle_tours[v]
-        if len(vehicle_tour) > 0:
-            cost += distance(depot, vehicle_tour[0])
-            for i in range(0, len(vehicle_tour) - 1):
-                cost += distance(vehicle_tour[i], vehicle_tour[i + 1])
-                cost += distance(vehicle_tour[-1], depot)
-
-    # prepare the solution in the specified output format
-    outputData = '%.2f' % cost + ' ' + str(0) + '\n'
-    for v in range(0, vehicle_count):
-        outputData += str(depot.index) + ' ' + ' '.join(
-            [str(customer.index) for customer in vehicle_tours[v]]) + ' ' + str(depot.index) + '\n'
-
-    return outputData
+        tour.append(nearest_neighbor)
+        candidates.remove(nearest_neighbor)
+    return tour_distance(tour, points), 0, tour
 
 
-def solve_vrp(warehouses, customers):
+def swap(tour, dist, start, end, points):
+    """
+    Swap the points.
+    :param tour:
+    :param dist:
+    :param start:
+    :param end:
+    :param points:
+    :return:
+    """
+    new_tour = tour[:start] + tour[start:end + 1][::-1] + tour[end + 1:]
+
+    new_distance = dist - \
+                   (distance(points[tour[start - 1]], points[tour[start]]) +
+                    distance(points[tour[end]], points[tour[(end + 1) % len(tour)]])) + \
+                   (distance(points[new_tour[start - 1]], points[new_tour[start]]) +
+                    distance(points[new_tour[end]], points[new_tour[(end + 1) % len(tour)]]))
+    return new_tour, new_distance
+
+
+def two_opt(points):
+    """
+    2-opt optimization.
+    :param points:
+    :return:
+    """
+    point_count = len(points)
+    best_distance, _, best_tour = greedy(points)
+    improved = True
+    t = time.clock()
+    while improved:
+        improved = False
+        for start, end in itertools.combinations(range(point_count), 2):
+            curr_tour, curr_distance = swap(best_tour, best_distance, start, end, points)
+            if curr_distance < best_distance:
+                best_tour = curr_tour
+                best_distance = curr_distance
+                improved = True
+                break
+        if time.clock() - t >= 4 * 3600 + 59 * 60:
+            improved = False
+    return tour_distance(best_tour, points), 0, best_tour
+
+
+def plan_vehicle_routing(warehouse, vehicle):
+    """
+    Optimizes the vehicle routing.
+    :param warehouse:
+    :param vehicle:
+    :return:
+    """
+    points = []
+    points.append(warehouse)
+    for customer in vehicle.customers:
+        points.append(customer)
+
+    # Greedy solution (nearest neighbor)
+    # Starts from 0, add nearest neighbor to the cycle at each step
+    # Generally acceptable, but can be arbitrarily bad
+    # best_distance, opt, best_tour = greedy(points)
+
+    # 2-opt solution
+    best_distance, opt, best_tour = two_opt(points)
+    print('* best distance: {0}'.format(str(best_distance)))
+    print('* best tour: {0}'.format(best_tour))
+
+    # Calculate the cost of the solution
+    cost = best_distance
+    # cost += distance(warehouse, points[best_tour[0]])
+    # cost += distance(warehouse, points[best_tour[len(best_tour) - 1]])
+    print('* total cost: {0}'.format(str(cost)))
+
+    # Make directed cycle graph starting from the warehouse and returning to the warehouse.
+    graph = []
+    warehouse_index = len(best_tour)
+    index = 0
+    lefthand_vertices_of_warehouse = []
+    for vertex in best_tour:
+        if vertex == 0:  # Start from the warehouse
+            warehouse_index = index
+            graph.append(vertex)
+        elif index > warehouse_index:
+            graph.append(vertex)
+        else:
+            lefthand_vertices_of_warehouse.append(vertex)
+
+        index += 1
+    for vertex in lefthand_vertices_of_warehouse:
+        graph.append(vertex)
+
+    graph.append(0)  # Edge from the last vertex to the warehouse
+
+    solution = []
+    for vertex in graph:
+        solution.append(points[vertex])
+
+    return cost, opt, solution
+
+
+def solve_vrp(warehouses, customers, is_plot):
     """
     Solves the vehicle routing problem.
     :param warehouses:
     :param customers:
+    :param is_plot:
     :return:
     """
     # 1. EDA for input data.
-    plot_input_data(warehouses, customers)
+    if is_plot is True:
+        plot_input_data(warehouses, customers)
     clusters, centroids = cluster_customers(NUM_VEHICLES, customers)
-    plot_clusters(warehouses, customers, centroids, clusters, [])
-    # plot_clusters(warehouses, customers, centroids, clusters, [0, 1, 2, 3, 4])
-    # plot_clusters(warehouses, customers, centroids, clusters, [5, 6, 7, 8, 9])
-    # plot_clusters(warehouses, customers, centroids, clusters, [10, 11, 12, 13, 14])
-    # plot_clusters(warehouses, customers, centroids, clusters, [15, 16, 17, 18, 19])
-    # plot_clusters(warehouses, customers, centroids, clusters, [20, 21, 22, 23, 24])
+    if is_plot is True:
+        plot_clusters(warehouses, customers, centroids, clusters, [])
+        # plot_clusters(warehouses, customers, centroids, clusters, [0, 1, 2, 3, 4])
+        # plot_clusters(warehouses, customers, centroids, clusters, [5, 6, 7, 8, 9])
+        # plot_clusters(warehouses, customers, centroids, clusters, [10, 11, 12, 13, 14])
+        # plot_clusters(warehouses, customers, centroids, clusters, [15, 16, 17, 18, 19])
+        # plot_clusters(warehouses, customers, centroids, clusters, [20, 21, 22, 23, 24])
 
     # 2. Detect the outliers.
     # If the distance between global centroid and customer is outside of 85% percentile distance statistice,
     # set as outlier.
-    inliers, outliers = detect_outliers(customers, 85)
+    inliers, outliers = detect_outliers(customers, 100)
 
     # 3. Find the centroids for 25 vehicles only with inliers.
     clusters, centroids = cluster_customers(NUM_VEHICLES, inliers)
-    plot_clusters(warehouses, inliers, centroids, clusters, [])
+    if is_plot is True:
+        plot_clusters(warehouses, inliers, centroids, clusters, [])
 
-    # 4. Initialize and sort the cluster centroids by the closest order of the distance
+    # 4. Initialize and sort the cluster centroids by the nearest order of the distance
     # between the warehouse and centroid.
     # i.e. The sorted cluster centroids are the vehicles to assign the customers.
     # We assume that each vehicle's max capacity is 22 (i.e. capacity = number of customers / number of vehicles)
@@ -425,20 +580,37 @@ def solve_vrp(warehouses, customers):
     # Subject to the constraint of vehicle's capacity.
     vehicles = assign_customers_to_vehicles(customers, vehicles, max_capacity)
 
-    plot_assigned_customers(warehouses, vehicles, [])
-    for i in range(0, NUM_VEHICLES):
-        if len(vehicles[i].customers) > 0:
-            plot_assigned_customers(warehouses, vehicles, [i])
+    if is_plot is True:
+        plot_assigned_customers(warehouses, vehicles, [])
+        for i in range(0, NUM_VEHICLES):
+            if len(vehicles[i].customers) > 0:
+                plot_assigned_customers(warehouses, vehicles, [i])
+
+    # 6. Optimize the vehicle routing tour.
+    output_data = ''
+    total_cost = 0
+    for vehicle in vehicles:
+        obj, opt, vehicle_tour = plan_vehicle_routing(warehouses[0], vehicle)
+        total_cost += obj
+        output_data += ' '.join([str(int(vertex.index)) for vertex in vehicle_tour]) + '\n'
+        if is_plot is True:
+            plot_vehicle_tour(vehicle, vehicle_tour)
+
+    output_data = '%.5f' % total_cost + ' ' + str(0) + '\n' + output_data
+    return output_data
 
 
 if __name__ == '__main__':
     import sys
-    if len(sys.argv) > 1:
+    if len(sys.argv) > 2:
         input_file = sys.argv[1].strip()
+        is_plot = str2bool(sys.argv[2].strip())
+
         warehouses, customers = read_csv_input_data(input_file)
-        solve_vrp(warehouses, customers)
+        output = solve_vrp(warehouses, customers, is_plot)
+        print output
     else:
-        print('This requires an input file. (eg. python solver.py ../data/locations.csv)')
+        print('This requires an input file. (eg. python solver.py ../data/locations.csv true)')
 
 
 
