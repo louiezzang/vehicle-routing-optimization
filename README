@@ -7,6 +7,7 @@ Remove outlier
 33.778722,-118.198508
 50.6901888,3.1614059
 
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
 
 $$
 M = \left( \begin{array}{ccc}
