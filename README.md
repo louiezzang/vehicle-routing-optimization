@@ -10,11 +10,21 @@ The problem is mathematically formulated in the following way: We are given a li
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.codecogs.com/eqnedit.php?latex=\sum_{i&space;\in&space;V}\right{(j&space;\in&space;T_{i}})=1&space;\:\:\:&space;(j&space;\in&space;N&space;\:&space;\backslash&space;\:&space;0)" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\sum_{i&space;\in&space;V}\right{(j&space;\in&space;T_{i}})=1&space;\:\:\:&space;(j&space;\in&space;N&space;\:&space;\backslash&space;\:&space;0)" title="\sum_{i \in V}\right{(j \in T_{i}})=1 \:\:\: (j \in N \: \backslash \: 0)" /></a>
 
+--------------------------------------------------------------------------------
+
 ## Example
 Input data: [`./data/location.csv`](./data/locations.csv)
+* Format: latitude,longitude,is_customer(0 or 1)
 * Number of Locations(*__N__*) = 537
 * Number of Vehicles(*__V__*) = 25
 * For each location
   * Demand(*__d<sub>i</sub>__*) = 1
-* The capacity of the vehicle(*__c__*) = 21 ~ 25
+* The capacity of the vehicle(*__c__*) = 21 ~ 25 (= 537 / 25)
+
+## Proposed Solution
+The vehicle routing problem (VRP) is a NP(Nondeterministic Polymomial-time) hard problem.
+This project uses a heurisitic algorithm to solve this problem. The proposed algorithm consists fof two phases:
+* Finds the centroids which will be delivered by each vehicle by using k-means clustering algorithm
+* Assigns the customers to each centroid(i.e. vehecle)
+* Optimize the vehicle routing(This is a TSP problem.)
 
