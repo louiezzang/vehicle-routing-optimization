@@ -23,7 +23,7 @@ Input data: [`./data/location.csv`](./data/locations.csv)
 
 ## Proposed Solution
 The vehicle routing problem (VRP) is a NP(Nondeterministic Polymomial-time) hard problem.
-This project uses a heurisitic algorithm to solve this problem. The proposed algorithm consists fof two phases:
+This project uses a heurisitic algorithm to solve this problem. The proposed algorithm consists of two phases:
 * Finds the centroids which will be delivered by each vehicle by using k-means clustering algorithm
 * Assigns the customers to each centroid(i.e. vehecle)
 * Optimize the vehicle routing(This is a TSP problem.)
