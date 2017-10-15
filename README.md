@@ -31,5 +31,15 @@ This project uses a heurisitic algorithm to solve this problem. The proposed alg
 ### Plots the input data.
 <div style="width:100%;"><center><nobr>
 <img src="./images/figure_01_input.png" style="max-width:40%; height:auto;">
+ 
+<table style="vertical-align:middle; text-align:center; border-collapse:collapse;">
+<tr>
+<td style="border:none"><img src="./images/figure_01_input.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="images/mono_2_of_4.png" style="height:auto; max-width:80%;"></td>
+<tr>
+<td style="border:none"><img src="images/mono_3_of_4.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="images/mono_4_of_4.png" style="height:auto; max-width:80%;"></td>
+</tr>
+</table>
 
 </nobr></center></div>
