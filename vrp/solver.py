@@ -599,7 +599,6 @@ def solve_vrp(warehouses, customers, is_plot):
     output_data = '%.5f' % total_cost + ' ' + str(0) + '\n' + output_data
     return output_data
 
-
 if __name__ == '__main__':
     import sys
     if len(sys.argv) > 2:
