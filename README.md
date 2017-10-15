@@ -28,3 +28,8 @@ This project uses a heurisitic algorithm to solve this problem. The proposed alg
 2. Assigns the customers to each centroid(i.e. vehecle)
 3. Optimize the vehicle routing(This is a TSP problem.)
 
+### Plots the input data.
+<div style="width:100%;"><center><nobr>
+<img src="./images/figure_01_input.png" style="max-width:40%; height:auto;">
+
+</nobr></center></div>
