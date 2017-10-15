@@ -36,98 +36,101 @@ This project uses a heurisitic algorithm to solve this problem. The proposed alg
 </table>
  
 ### The clustered centroids(= vehecles)
+Initialize and sort the cluster centroids by the farthest order of the distance between the warehouse and centroid. i.e. The sorted cluster centroids are the vehicles to assign the customers.
+We assume that each vehicle's max capacity is 21 ~ 25. (i.e. capacity = number of customers / number of vehicles)
 <table style="vertical-align:middle; text-align:center; border-collapse:collapse;">
 <tr>
-<td style="border:none"><img src="./images/figure_02_clustered_centroids.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_02_clustered_centroids.png" style="height:auto; max-width:100%;"></td>
 </tr>
 </table>
 
 ### The assigned customers
+Assigns all the customers into each cluster centroid(i.e. vehicle) by the farthest order of the centroids subject to the constraint of vehicle's capacity.
 <table style="vertical-align:middle; text-align:center; border-collapse:collapse;">
 <tr>
-<td style="border:none"><img src="./images/figure_03_assigned_customers.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_03_assigned_customers.png" style="height:auto; max-width:100%;"></td>
 </tr>
 </table>
 
 ### The optimized vehicles routing
+First opimizes by greedy solution (nearest neighbor)
+It starts from 0, add nearest neighbor to the cycle at each step.
+Finally opimizes the routing by using 2-opt solution.
 <table style="vertical-align:middle; text-align:center; border-collapse:collapse;">
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_01.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_01.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_02.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_02.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_03.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_03.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_04.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_04.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_05.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_05.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_06.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_06.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_07.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_07.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_08.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_08.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_09.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_09.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_10.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_10.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_11.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_11.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_12.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_12.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_13.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_13.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_14.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_14.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_15.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_15.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_16.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_16.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_17.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_17.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_18.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_18.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_19.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_19.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_20.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_20.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_21.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_21.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_22.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_22.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_23.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_23.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_24.png" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_24.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_25.png" style="height:auto; max-width:80%;"></td>
-</tr>
-<tr>
-<td style="border:none"><img src="" style="height:auto; max-width:80%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_25.png" style="height:auto; max-width:100%;"></td>
 </tr>
 </table>
 </nobr></center></div>
