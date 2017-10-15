@@ -53,54 +53,80 @@ This project uses a heurisitic algorithm to solve this problem. The proposed alg
 <table style="vertical-align:middle; text-align:center; border-collapse:collapse;">
 <tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_01.png" style="height:auto; max-width:80%;"></td>
+</tr>
+<tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_02.png" style="height:auto; max-width:80%;"></td>
 </tr>
 <tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_03.png" style="height:auto; max-width:80%;"></td>
+</tr>
+<tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_04.png" style="height:auto; max-width:80%;"></td>
 </tr>
 <tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_05.png" style="height:auto; max-width:80%;"></td>
+</tr>
+<tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_06.png" style="height:auto; max-width:80%;"></td>
 </tr>
 <tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_07.png" style="height:auto; max-width:80%;"></td>
+</tr>
+<tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_08.png" style="height:auto; max-width:80%;"></td>
 </tr>
 <tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_09.png" style="height:auto; max-width:80%;"></td>
+</tr>
+<tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_10.png" style="height:auto; max-width:80%;"></td>
 </tr>
 <tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_11.png" style="height:auto; max-width:80%;"></td>
+</tr>
+<tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_12.png" style="height:auto; max-width:80%;"></td>
 </tr>
 <tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_13.png" style="height:auto; max-width:80%;"></td>
+</tr>
+<tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_14.png" style="height:auto; max-width:80%;"></td>
 </tr>
 <tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_15.png" style="height:auto; max-width:80%;"></td>
+</tr>
+<tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_16.png" style="height:auto; max-width:80%;"></td>
 </tr>
 <tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_17.png" style="height:auto; max-width:80%;"></td>
+</tr>
+<tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_18.png" style="height:auto; max-width:80%;"></td>
 </tr>
 <tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_19.png" style="height:auto; max-width:80%;"></td>
+</tr>
+<tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_20.png" style="height:auto; max-width:80%;"></td>
 </tr>
 <tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_21.png" style="height:auto; max-width:80%;"></td>
+</tr>
+<tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_22.png" style="height:auto; max-width:80%;"></td>
 </tr>
 <tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_23.png" style="height:auto; max-width:80%;"></td>
+</tr>
+<tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_24.png" style="height:auto; max-width:80%;"></td>
 </tr>
 <tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_25.png" style="height:auto; max-width:80%;"></td>
+</tr>
+<tr>
 <td style="border:none"><img src="" style="height:auto; max-width:80%;"></td>
 </tr>
 </table>
