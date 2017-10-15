@@ -59,7 +59,6 @@ Finally opimizes the routing by using 2-opt solution.
 <table style="vertical-align:middle; text-align:center; border-collapse:collapse;">
 <tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_01.png" style="height:auto; max-width:100%;"></td>
-</tr>
 <tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_02.png" style="height:auto; max-width:100%;"></td>
 </tr>
