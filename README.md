@@ -166,5 +166,9 @@ vehicle25: 0 203 182 171 189 191 220 230 233 234 236 244 245 246 253 252 251 250
 ```
 
 ## References
+
 * [A Centroid-based heuristic algorithm for the capacitated vehicle routing problem](https://www.google.co.id/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&ved=0ahUKEwjbiaahgvTWAhVFQo8KHT20DYYQFggqMAA&url=http%3A%2F%2Fwww.cai.sk%2Fojs%2Findex.php%2Fcai%2Farticle%2Fdownload%2F192%2F162&usg=AOvVaw1qRMXhuzaCZcEOP5oT9XtW), by K Shin, 2012
-* 
+
+* [Solving Multiple TSP Problem by K-Means and Crossover based Modified ACO Algorithm](https://www.researchgate.net/profile/Majd_Latah/publication/316855410_Solving_multiple_tsp_problem_by_k-means_and_crossover_based_modified_aco_algorithm/links/591438a6aca27200fe4ccc4b/Solving-multiple-tsp-problem-by-k-means-and-crossover-based-modified-aco-algorithm.pdf), by Majd Latah, 2016
+
+* [2-opt algorithm](https://en.wikipedia.org/wiki/2-opt), in Wikipedia
