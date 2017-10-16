@@ -53,7 +53,7 @@ Assigns all the customers into each cluster centroid(i.e. vehicle) by the farthe
 </table>
 
 ### The optimized vehicles routing
-First opimizes by greedy solution (nearest neighbor)
+First opimizes vehicles routing by greedy solution (nearest neighbor).
 It starts from 0, add nearest neighbor to the cycle at each step.
 Finally opimizes the routing by using 2-opt solution.
 <table style="vertical-align:middle; text-align:center; border-collapse:collapse;">
@@ -136,7 +136,7 @@ Finally opimizes the routing by using 2-opt solution.
 </nobr></center></div>
 
 ### Output
-```python
+```
 total cost: 3.43503
 vehicle1: 0 208 274 53 9 10 6 7 4 2 1 3 15 16 22 23 25 26 28 32 30 31 0
 vehicle2: 0 443 422 426 431 441 478 498 499 509 522 516 534 535 536 525 526 524 528 529 530 527 0
