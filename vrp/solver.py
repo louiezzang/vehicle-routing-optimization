@@ -568,7 +568,7 @@ def solve_vrp(warehouses, customers, is_plot):
     if is_plot is True:
         plot_clusters(warehouses, inliers, centroids, clusters, [])
 
-    # 4. Initialize and sort the cluster centroids by the nearest order of the distance
+    # 4. Initialize and sort the cluster centroids by the farthest order of the distance
     # between the warehouse and centroid.
     # i.e. The sorted cluster centroids are the vehicles to assign the customers.
     # We assume that each vehicle's max capacity is 22 (i.e. capacity = number of customers / number of vehicles)
@@ -592,11 +592,11 @@ def solve_vrp(warehouses, customers, is_plot):
     for vehicle in vehicles:
         obj, opt, vehicle_tour = plan_vehicle_routing(warehouses[0], vehicle)
         total_cost += obj
-        output_data += ' '.join([str(int(vertex.index)) for vertex in vehicle_tour]) + '\n'
+        output_data += 'vehicle' + str(vehicle.index + 1) + ': ' + ' '.join([str(int(vertex.index)) for vertex in vehicle_tour]) + '\n'
         if is_plot is True:
             plot_vehicle_tour(vehicle, vehicle_tour)
 
-    output_data = '%.5f' % total_cost + ' ' + str(0) + '\n' + output_data
+    output_data = 'total cost: %.5f' % total_cost + '\n' + output_data
     return output_data
 
 if __name__ == '__main__':
@@ -610,6 +610,3 @@ if __name__ == '__main__':
         print output
     else:
         print('This requires an input file. (eg. python solver.py ../data/locations.csv true)')
-
-
-
