@@ -58,10 +58,10 @@ It starts from 0, add nearest neighbor to the cycle at each step.
 Finally opimizes the routing by using 2-opt solution.
 <table style="vertical-align:middle; text-align:center; border-collapse:collapse;">
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_01.png" style="height:auto; width:100%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_01.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
-<td style="border:none"><img src="./images/figure_04_vehicle_02.png" style="height:auto; width:100%;"></td>
+<td style="border:none"><img src="./images/figure_04_vehicle_02.png" style="height:auto; max-width:100%;"></td>
 </tr>
 <tr>
 <td style="border:none"><img src="./images/figure_04_vehicle_03.png" style="height:auto; max-width:100%;"></td>
@@ -164,3 +164,7 @@ vehicle23: 0 242 247 261 262 229 214 211 212 205 202 219 221 227 239 241 232 243
 vehicle24: 0 176 175 163 164 168 162 145 134 143 177 173 183 197 198 194 193 185 186 188 207 240 298 301 0
 vehicle25: 0 203 182 171 189 191 220 230 233 234 236 244 245 246 253 252 251 250 277 280 275 269 257 256 0
 ```
+
+## References
+* [A Centroid-based heuristic algorithm for the capacitated vehicle routing problem](https://www.google.co.id/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&ved=0ahUKEwjbiaahgvTWAhVFQo8KHT20DYYQFggqMAA&url=http%3A%2F%2Fwww.cai.sk%2Fojs%2Findex.php%2Fcai%2Farticle%2Fdownload%2F192%2F162&usg=AOvVaw1qRMXhuzaCZcEOP5oT9XtW), by K Shin, 2012
+* 
